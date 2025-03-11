@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">ScribbleGame</string>
+    <string name="selector">SELECT_SCREEN</string>
+    <string name="login">LOGIN</string>
+    <string name="roomlists">ROOMLIST</string>
+    <string name="match">MATCH_SCREEN</string>
+</resources>

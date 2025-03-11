@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "134681870288",
+    "project_id": "room-6d546",
+    "storage_bucket": "room-6d546.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:134681870288:android:5fe9c4cd7769269c78c3d5",
+        "android_client_info": {
+          "package_name": "com.tanh.scribblegame"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBtUSzfMLMCIblv_8niYg18roKJw3hAq8g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
