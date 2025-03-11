@@ -26,18 +26,33 @@ class UserRepositoryImpl @Inject constructor(
                     "name" to name
                 )
                 val result = suspendCoroutine<Resources<Boolean, Exception>> { continuation ->
-                    val doc = userRef.document().id
-                    userRef.document(doc).set(user)
+                    userRef.add(user)
                         .addOnSuccessListener {
                             continuation.resume(Resources.Success(true))
                         }
                         .addOnFailureListener {
+                            it.printStackTrace()
                             continuation.resume(Resources.Error(it))
                         }
                 }
                 return@withContext result
             } catch (e: Exception) {
+                e.printStackTrace()
                 Resources.Error(e)
+            }
+        }
+    }
+
+    override suspend fun deleteUser(userId: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                val userSnapshot = userRef.whereEqualTo("userId", userId).get().await()
+                val docId = userSnapshot.documents.firstOrNull()?.id
+                if (docId != null) {
+                    userRef.document(docId).delete().await()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
@@ -53,6 +68,7 @@ class UserRepositoryImpl @Inject constructor(
                     Resources.Error(Exception("User not found"))
                 }
             } catch (e: Exception) {
+                e.printStackTrace()
                 Resources.Error(e)
             }
         }

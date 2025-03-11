@@ -21,4 +21,9 @@ class AnonymousAuthRepositoryImpl @Inject constructor(
     }
 
     override fun getCurrentUserId(): String? = auth.currentUser?.uid
+
+    override fun signOut() {
+        auth.signOut()
+    }
+
 }
