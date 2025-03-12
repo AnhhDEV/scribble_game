@@ -2,9 +2,9 @@ package com.tanh.scribblegame.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.tanh.scribblegame.data.resources.Resources
-import com.tanh.scribblegame.domain.model.User
+import com.tanh.scribblegame.domain.model.UserData
 import com.tanh.scribblegame.domain.repository.UserRepository
-import com.tanh.scribblegame.util.Collection
+import com.tanh.scribblegame.util.Collections
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -16,7 +16,7 @@ class UserRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore
 ): UserRepository {
 
-    private val userRef = firestore.collection(Collection.USERS)
+    private val userRef = firestore.collection(Collections.USERS)
 
     override suspend fun createUser(userId: String, name: String): Resources<Boolean, Exception> {
         return withContext(Dispatchers.IO) {
@@ -57,13 +57,13 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getUser(userId: String): Resources<User, Exception> {
+    override suspend fun getUser(userId: String): Resources<UserData, Exception> {
         return withContext(Dispatchers.IO) {
             try {
                 val userSnapshot = userRef.whereEqualTo("userId", userId).get().await()
-                val user = userSnapshot.toObjects(User::class.java).firstOrNull()
-                if(user != null) {
-                    Resources.Success(user)
+                val userData = userSnapshot.toObjects(UserData::class.java).firstOrNull()
+                if(userData != null) {
+                    Resources.Success(userData)
                 } else {
                     Resources.Error(Exception("User not found"))
                 }
@@ -74,4 +74,16 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getNameUser(userId: String): String {
+        return withContext(Dispatchers.IO) {
+            try {
+                val snapshot = userRef.whereEqualTo("userId", userId).get().await()
+                val userData = snapshot.toObjects(UserData::class.java).firstOrNull()
+                userData?.name ?: "NoName"
+            } catch (e: Exception) {
+                e.printStackTrace()
+                "NoName"
+            }
+        }
+    }
 }

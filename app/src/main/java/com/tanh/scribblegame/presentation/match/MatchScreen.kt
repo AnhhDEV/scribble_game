@@ -12,10 +12,6 @@ fun MatchScreen(
     modifier: Modifier = Modifier
 ) {
 
-    val value = viewModel.word.collectAsState().value
 
-    Text(
-        text = value
-    )
 
 }

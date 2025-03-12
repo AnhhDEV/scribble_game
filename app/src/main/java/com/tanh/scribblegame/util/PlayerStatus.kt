@@ -1,7 +1,7 @@
 package com.tanh.scribblegame.util
 
 enum class PlayerStatus {
-    PLAYING,
+    ONLINE,
     DISCONNECTED,
     LEFT
 }

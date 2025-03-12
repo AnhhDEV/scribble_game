@@ -31,7 +31,7 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             authRepository.signInAnonymously { result ->
                 if (result) {
-                    sendEvent(OneTimeEvent.Navigate(Route.SELECTOR))
+                    sendEvent(OneTimeEvent.Navigate(Route.ROOMLIST))
                     createUser()
                 } else {
                     sendEvent(OneTimeEvent.ShowToast("Login failed"))

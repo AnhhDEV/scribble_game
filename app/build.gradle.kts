@@ -94,6 +94,8 @@ dependencies {
     androidTestImplementation ("io.mockk:mockk-android:1.13.16")
     testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
     androidTestImplementation ("com.google.dagger:hilt-android-testing:2.44")
+
+    implementation("com.google.accompanist:accompanist-swiperefresh:0.32.0")
 }
 
 kapt {

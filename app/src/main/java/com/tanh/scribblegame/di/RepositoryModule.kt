@@ -1,8 +1,10 @@
 package com.tanh.scribblegame.di
 
 import com.tanh.scribblegame.data.repository.AnonymousAuthRepositoryImpl
+import com.tanh.scribblegame.data.repository.MatchRepositoryImpl
 import com.tanh.scribblegame.data.repository.UserRepositoryImpl
 import com.tanh.scribblegame.domain.repository.AnonymousAuthRepository
+import com.tanh.scribblegame.domain.repository.MatchRepository
 import com.tanh.scribblegame.domain.repository.UserRepository
 import dagger.Binds
 import dagger.Module
@@ -25,5 +27,11 @@ abstract class RepositoryModule {
     abstract fun bindUserRepository(
         repository: UserRepositoryImpl
     ): UserRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindMatchRepository(
+        repository: MatchRepositoryImpl
+    ): MatchRepository
 
 }

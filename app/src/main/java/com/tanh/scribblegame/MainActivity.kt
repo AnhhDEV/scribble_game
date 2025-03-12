@@ -2,6 +2,7 @@ package com.tanh.scribblegame
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -24,6 +25,7 @@ import com.tanh.scribblegame.domain.repository.AnonymousAuthRepository
 import com.tanh.scribblegame.domain.repository.UserRepository
 import com.tanh.scribblegame.presentation.login.LoginScreen
 import com.tanh.scribblegame.presentation.match.MatchScreen
+import com.tanh.scribblegame.presentation.room_lists.MatchListScreen
 import com.tanh.scribblegame.presentation.select_word.SelectorScreen
 import com.tanh.scribblegame.ui.theme.ScribbleGameTheme
 import com.tanh.scribblegame.util.Route
@@ -34,6 +36,7 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -51,6 +54,11 @@ class MainActivity : ComponentActivity() {
                     composable(Route.SELECTOR) {
                         SelectorScreen() {
                             navController.navigate(it)
+                        }
+                    }
+                    composable(Route.ROOMLIST) {
+                        MatchListScreen() {
+                            navController.navigate(it.route)
                         }
                     }
                     composable(

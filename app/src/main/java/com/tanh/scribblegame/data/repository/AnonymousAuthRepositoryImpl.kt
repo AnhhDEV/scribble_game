@@ -1,7 +1,6 @@
 package com.tanh.scribblegame.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
-import com.tanh.scribblegame.domain.model.User
 import com.tanh.scribblegame.domain.repository.AnonymousAuthRepository
 import javax.inject.Inject
 

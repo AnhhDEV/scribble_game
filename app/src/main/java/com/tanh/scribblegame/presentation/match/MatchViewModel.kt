@@ -11,10 +11,5 @@ class MatchViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    var word = MutableStateFlow("")
-
-    init {
-        word.value = savedStateHandle.get<String>("word") ?: "No word"
-    }
 
 }
