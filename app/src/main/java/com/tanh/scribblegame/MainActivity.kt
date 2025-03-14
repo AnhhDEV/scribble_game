@@ -62,14 +62,14 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     composable(
-                        route = Route.MATCH + "/{word}",
+                        route = Route.MATCH + "/{matchId}",
                         arguments = listOf(
-                            navArgument("word") {
+                            navArgument("matchId") {
                                 type = NavType.StringType
                             }
                         )
                     ) {
-                        val word = it.arguments?.getString("word")
+                        val matchId = it.arguments?.getString("matchId")
                         MatchScreen()
                     }
                 }

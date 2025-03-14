@@ -6,6 +6,6 @@ object Collections {
     const val MATCHES = "matches"
     const val CHATS = "chats"
     const val PATHS = "paths"
-    const val USER_PATHS = "userPaths"
+    const val PLAYERS = "players"
 
 }

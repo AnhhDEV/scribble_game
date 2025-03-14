@@ -11,6 +11,7 @@ import com.tanh.scribblegame.domain.repository.AnonymousAuthRepository
 import com.tanh.scribblegame.domain.repository.MatchRepository
 import com.tanh.scribblegame.domain.repository.UserRepository
 import com.tanh.scribblegame.presentation.onetime_event.OneTimeEvent
+import com.tanh.scribblegame.domain.use_case.JoinRoom
 import com.tanh.scribblegame.util.MatchStatus
 import com.tanh.scribblegame.util.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,8 +28,9 @@ import javax.inject.Inject
 class MatchListViewModel @Inject constructor(
     private val repository: MatchRepository,
     private val auth: AnonymousAuthRepository,
-    private val userDataRepository: UserRepository
-): ViewModel() {
+    private val userDataRepository: UserRepository,
+    private val joinRoom: JoinRoom
+) : ViewModel() {
 
     private val _state = MutableStateFlow(MatchListState())
     val state = _state.asStateFlow()
@@ -41,7 +43,7 @@ class MatchListViewModel @Inject constructor(
     }
 
     fun onEvent(event: MatchListEvent) {
-        when(event) {
+        when (event) {
             MatchListEvent.Refresh -> fetchMatches()
             is MatchListEvent.CreateNewRoom -> createNewRoom(event.name)
         }
@@ -61,8 +63,20 @@ class MatchListViewModel @Inject constructor(
                 userId = userId,
                 name = username
             )
-            repository.createMatch(match, userData)
-            Log.d("TAG3", "createNewRoom: $username")
+            val result = async {
+                repository.createMatch(match, userData)
+            }.await()
+            result.let {
+                it.onSuccess { matchId ->
+                    sendEvent(OneTimeEvent.Navigate(Route.MATCH + "/$matchId"))
+                }
+                it.onError { error ->
+                    _state.update { list ->
+                        list.copy(error = error.message)
+                    }
+                }
+            }
+
         }
     }
 
@@ -86,8 +100,24 @@ class MatchListViewModel @Inject constructor(
         }
     }
 
-    fun joinMatch(documentId: String) {
-        sendEvent(OneTimeEvent.Navigate(Route.MATCH + "/$documentId"))
+    fun joinMatch(matchId: String) {
+        viewModelScope.launch {
+            val userId = auth.getCurrentUserId()
+            if (userId == null) {
+                Log.d("joinMatch", "User not logged in")
+                return@launch
+            }
+            userDataRepository.getUser(userId)
+                .onSuccess { user ->
+                    launch {
+                        joinRoom(matchId, user)
+                        sendEvent(OneTimeEvent.Navigate(Route.MATCH + "/$matchId"))
+                    }
+                }
+                .onError {
+                    Log.d("joinMatch", "Failed to fetch user: ${it.message}")
+                }
+        }
     }
 
     private fun sendEvent(event: OneTimeEvent) {
