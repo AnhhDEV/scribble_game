@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.toLowerCase
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -20,8 +21,10 @@ import com.tanh.scribblegame.domain.use_case.use_case_manager.MessageManager
 import com.tanh.scribblegame.domain.use_case.use_case_manager.PlayerManager
 import com.tanh.scribblegame.presentation.onetime_event.OneTimeEvent
 import com.tanh.scribblegame.util.PlayerRole
+import com.tanh.scribblegame.util.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -112,7 +115,9 @@ class MatchViewModel @Inject constructor(
     //a new game start
     fun startGame() {
         //set role
-        setRole()
+//        setRole()
+        setTimePerRound()
+        selectWord()
     }
 
     private fun setRole() {
@@ -122,6 +127,44 @@ class MatchViewModel @Inject constructor(
                 playersManager.setRolePlayer(matchId, _state.value.userId, _state.value.myRole)
             }
         }
+    }
+
+    private fun setTimePerRound() {
+        _state.update {
+            it.copy(
+                time = 90
+            )
+        }
+    }
+
+
+    private fun decreaseTime() {
+        viewModelScope.launch {
+            while(state.value.time > 0) {
+                _state.update {
+                    it.copy(
+                        time = it.time - 1
+                    )
+                }
+                delay(1000L)
+            }
+        }
+    }
+
+    private fun selectWord() {
+        Log.d("MAT2", "Select word ${_state.value.myRole}")
+        if(_state.value.myRole == PlayerRole.DRAWING.toString() && _state.value.currentWord.isBlank()) {
+            Log.d("MAT2", "Nav Select word")
+            sendEvent(OneTimeEvent.Navigate(Route.SELECTOR + "/${matchId}"))
+        } else if(_state.value.myRole == PlayerRole.GUESSING.toString()) {
+            _state.update {
+                it.copy(wait = true)
+            }
+        }
+    }
+
+    fun startGuess() {
+        decreaseTime()
     }
 
     //init match data
@@ -158,6 +201,26 @@ class MatchViewModel @Inject constructor(
             } else {
                 sendEvent(OneTimeEvent.ShowSnackbar("Your device is not supported"))
             }
+            guessCorrect(message)
+        }
+    }
+
+    private fun guessCorrect(message: String) {
+        if(message.trim().equals(_state.value.currentWord.trim(), ignoreCase = true)) {
+            if(_state.value.myRole == PlayerRole.GUESSING.toString()) {
+                viewModelScope.launch {
+                    matchManager.updateScore(matchId, _state.value.time, _state.value.userId)
+                }
+                endRound()
+            }
+        }
+    }
+
+    private fun endRound() {
+        _state.update {
+            it.copy(
+                time = 0
+            )
         }
     }
 
@@ -166,6 +229,7 @@ class MatchViewModel @Inject constructor(
             _channel.send(event)
         }
     }
+
 
 
 

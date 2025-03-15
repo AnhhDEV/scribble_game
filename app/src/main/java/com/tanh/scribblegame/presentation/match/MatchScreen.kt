@@ -4,7 +4,9 @@ import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -28,6 +30,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tanh.scribblegame.domain.model.Match
 import com.tanh.scribblegame.presentation.match.item.MessageItem
@@ -37,7 +41,8 @@ import com.tanh.scribblegame.util.PlayerRole
 @Composable
 fun MatchScreen(
     viewModel: MatchViewModel = hiltViewModel<MatchViewModel>(),
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onNavigate: (OneTimeEvent.Navigate) -> Unit
 ) {
 
     val state = viewModel.state.collectAsState().value
@@ -61,8 +66,11 @@ fun MatchScreen(
                         duration = SnackbarDuration.Short
                     )
                 }
-                is OneTimeEvent.Navigate -> Unit
+                is OneTimeEvent.Navigate -> {
+                    onNavigate(event)
+                }
                 is OneTimeEvent.ShowToast -> Unit
+                OneTimeEvent.PopBackStack -> Unit
             }
         }
     }
@@ -72,10 +80,17 @@ fun MatchScreen(
     }
 
     LaunchedEffect(players.size) {
-        if(players.size == 2) {
+        if(players.size == 2 && state.round == 1) {
             //start game
             Log.d("MAT2", "RUn")
             viewModel.startGame()
+        }
+    }
+
+    LaunchedEffect(state.currentWord) {
+        if(state.currentWord.isNotBlank()) {
+            viewModel.startGuess()
+            Log.d("MAT2", "Start guess")
         }
     }
 
@@ -90,15 +105,25 @@ fun MatchScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-//            if(state.myRole == PlayerRole.DRAWING) {
-//
-//            } else if(state.myRole == PlayerRole.GUESSING) {
-//
-//            }
+            if(state.myRole == PlayerRole.DRAWING.toString()) {
+                Column() {
+                    Text("DRAWING")
+                }
+            } else if(state.myRole == PlayerRole.GUESSING.toString()) {
+                Column() {
+                    Text("GUESSING")
+                    if(state.wait) {
+                        Text("wait a bit")
+                    }
+                }
+            }
 
             //
             Text(players.toString())
+            Spacer(modifier = Modifier.height(16.dp))
             Text(match.toString())
+
+            Text(state.time.toString(), fontSize = 20.sp)
 
             //chat box
             LazyColumn(

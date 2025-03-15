@@ -41,7 +41,6 @@ fun LoginScreen(
                 is OneTimeEvent.ShowToast -> {
                     Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
                 }
-
                 else -> Unit
             }
         }

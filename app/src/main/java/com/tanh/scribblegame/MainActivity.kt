@@ -51,9 +51,16 @@ class MainActivity : ComponentActivity() {
                             navController.navigate(it)
                         }
                     }
-                    composable(Route.SELECTOR) {
+                    composable(
+                        route = Route.SELECTOR + "/{matchId}",
+                        arguments = listOf(
+                            navArgument("matchId") {
+                                type = NavType.StringType
+                            }
+                        )
+                    ) {
                         SelectorScreen() {
-                            navController.navigate(it)
+                            navController.popBackStack()
                         }
                     }
                     composable(Route.ROOMLIST) {
@@ -69,8 +76,9 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     ) {
-                        val matchId = it.arguments?.getString("matchId")
-                        MatchScreen()
+                        MatchScreen() {
+                            navController.navigate(it.route)
+                        }
                     }
                 }
             }

@@ -57,6 +57,7 @@ fun MatchListScreen(
                 is OneTimeEvent.Navigate -> onNavigate(event)
                 is OneTimeEvent.ShowSnackbar -> Unit
                 is OneTimeEvent.ShowToast -> Unit
+                OneTimeEvent.PopBackStack -> Unit
             }
         }
     }

@@ -1,10 +1,15 @@
 package com.tanh.scribblegame.presentation.select_word
 
 import android.provider.UserDictionary.Words
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tanh.scribblegame.R
+import com.tanh.scribblegame.domain.use_case.use_case_manager.MatchManager
 import com.tanh.scribblegame.presentation.onetime_event.OneTimeEvent
 import com.tanh.scribblegame.util.Route
 import com.tanh.scribblegame.util.WordsUtil
@@ -19,15 +24,21 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SelectorViewModel @Inject constructor() : ViewModel() {
+class SelectorViewModel @Inject constructor(
+    private val savedStateHandle: SavedStateHandle,
+    private val matchManager: MatchManager
+) : ViewModel() {
 
     private val _state = MutableStateFlow(SelectorUiState())
     val state = _state.asStateFlow()
+
+    var matchId by mutableStateOf("")
 
     private val _channel = Channel<OneTimeEvent>()
     val channel = _channel.receiveAsFlow()
 
     init {
+        matchId = savedStateHandle.get<String>("matchId") ?: ""
         reset()
     }
 
@@ -46,7 +57,13 @@ class SelectorViewModel @Inject constructor() : ViewModel() {
                 selectedWord = word
             )
         }
-        sendEvent(OneTimeEvent.Navigate(Route.MATCH + "/${word}"))
+        if(matchId.isNotBlank()) {
+            viewModelScope.launch {
+                matchManager.updateNewWord(matchId, word)
+                delay(1000L)
+            }
+            sendEvent(OneTimeEvent.PopBackStack)
+        }
     }
 
     fun startCountDown() {
@@ -60,12 +77,18 @@ class SelectorViewModel @Inject constructor() : ViewModel() {
                 delay(1000L)
             }
             if(state.value.time == 0) {
-                _state.update {
-                    it.copy(
-                        selectedWord = _state.value.words.random()
-                    )
+//                _state.update {
+//                    it.copy(
+//                        selectedWord = _state.value.words.random()
+//                    )
+//                }
+                if(matchId.isNotBlank()) {
+                    viewModelScope.launch {
+                        matchManager.updateNewWord(matchId, _state.value.words.random())
+                        delay(1000L)
+                    }
                 }
-                sendEvent(OneTimeEvent.Navigate(Route.MATCH + "/${state.value.selectedWord}"))
+                sendEvent(OneTimeEvent.PopBackStack)
             }
         }
     }

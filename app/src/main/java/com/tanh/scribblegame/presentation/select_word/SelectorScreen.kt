@@ -22,7 +22,7 @@ import com.tanh.scribblegame.presentation.onetime_event.OneTimeEvent
 fun SelectorScreen(
     viewModel: SelectorViewModel = hiltViewModel<SelectorViewModel>(),
     modifier: Modifier = Modifier,
-    onNavigate: (String) -> Unit
+    onPopBackStack: () -> Unit
 ) {
 
     val state = viewModel.state.collectAsState(initial = SelectorUiState()).value
@@ -30,8 +30,10 @@ fun SelectorScreen(
     LaunchedEffect(true) {
         viewModel.channel.collect { event ->
             when(event) {
-                is OneTimeEvent.Navigate -> onNavigate(event.route)
-                else -> Unit
+                is OneTimeEvent.Navigate -> Unit
+                OneTimeEvent.PopBackStack -> onPopBackStack()
+                is OneTimeEvent.ShowSnackbar -> Unit
+                is OneTimeEvent.ShowToast -> Unit
             }
         }
     }

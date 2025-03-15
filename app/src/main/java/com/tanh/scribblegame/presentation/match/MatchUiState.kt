@@ -16,5 +16,9 @@ data class MatchUiState(
     //player
     val userId: String = "",
     val myRole: String = PlayerRole.NULL.toString(),
-    val myStatus: String = PlayerStatus.ONLINE.toString()
+    val myStatus: String = PlayerStatus.ONLINE.toString(),
+
+    //wait
+    val wait: Boolean = false
+
 )
