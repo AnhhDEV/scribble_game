@@ -1,5 +1,8 @@
 package com.tanh.scribblegame.data.repository
 
+import android.os.Build
+import android.util.Log
+import androidx.annotation.RequiresApi
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -67,7 +70,7 @@ class MatchRepositoryImpl @Inject constructor(
                 val documentId = matchesRef.document().id
                 val obj = hashMapOf(
                     "currentWord" to match.currentWord,
-                    "documentId" to match.documentId,
+                    "documentId" to documentId,
                     "currentDrawer" to match.currentDrawer,
                     "round" to match.round,
                     "status" to match.status,
@@ -82,12 +85,12 @@ class MatchRepositoryImpl @Inject constructor(
                     "userId" to player1.userId,
                     "name" to player1.name,
                     "score" to 0,
-                    "role" to PlayerRole.NULL.toString(),
+                    "role" to PlayerRole.GUESSING.toString(),
                     "status" to PlayerStatus.ONLINE.toString()
                 )
                 matchesRef
                     .document(documentId)
-                    .collection(Collections.USERS)
+                    .collection(Collections.PLAYERS)
                     .add(user)
                     .await()
                 delay(1000L)
@@ -121,38 +124,30 @@ class MatchRepositoryImpl @Inject constructor(
     override suspend fun updateRound(matchId: String, newRound: Int) {
         withContext(Dispatchers.IO) {
             try {
-                matchesRef.document(matchId).update("round", newRound).await()
+                matchesRef.document(matchId).update("round", newRound)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
     }
 
-    override suspend fun observeCurrentDrawer(matchId: String): Flow<Resources<String, Exception>> {
-        return callbackFlow<Resources<String, Exception>> {
-            var listenerRegistration: ListenerRegistration? = null
-            try {
-                listenerRegistration = matchesRef.document(matchId)
-                    .addSnapshotListener { snapshot, error ->
-                        val result = if (error != null) {
-                            Resources.Error(error = error)
-                        } else {
-                            val match = snapshot?.toObject(Match::class.java)
-                            if(match != null) {
-                                Resources.Success(match.currentDrawer)
-                            } else {
-                                Resources.Error(Exception("Match not found"))
-                            }
-                        }
-                        trySend(result).isSuccess
+    override fun observeMatch(matchId: String): Flow<Match?> {
+        return callbackFlow {
+            val listenerRegistration = matchesRef.document(matchId)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        Log.e("MATCH2", "Firestore error: ${error.message}")
+                        trySend(null) // Không đóng Flow, chỉ gửi null để UI có thể xử lý
+                        return@addSnapshotListener
                     }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                trySend(Resources.Error(e))
-            }
-            awaitClose {
-                listenerRegistration?.remove()
-            }
+                    val result = snapshot?.toObject(Match::class.java)
+                    if (result == null) {
+                        Log.w("MATCH2", "Match data is null or malformed")
+                    }
+                    trySend(result)
+                }
+
+            awaitClose { listenerRegistration.remove() }
         }.flowOn(Dispatchers.IO)
     }
 
@@ -244,7 +239,7 @@ class MatchRepositoryImpl @Inject constructor(
                     "userId" to user.userId,
                     "name" to user.name,
                     "score" to 0,
-                    "role" to PlayerRole.NULL.toString(),
+                    "role" to PlayerRole.DRAWING.toString(),
                     "status" to PlayerStatus.ONLINE.toString()
                 )
                 matchesRef
@@ -316,22 +311,26 @@ class MatchRepositoryImpl @Inject constructor(
         }.flowOn(Dispatchers.IO)
     }
 
-    override suspend fun observePlayerNumber(matchId: String): Flow<Int> {
-        return callbackFlow<Int> {
+    override fun observePlayers(matchId: String): Flow<List<Player>> {
+        return callbackFlow {
             var listenerRegistration: ListenerRegistration? = null
 
             try {
-                listenerRegistration = matchesRef.document(matchId)
+                listenerRegistration = matchesRef
+                    .document(matchId)
                     .collection(Collections.PLAYERS)
                     .addSnapshotListener { snapshot, error ->
-                        val count = snapshot?.size() ?: 0
-                        trySend(count)
+                        if (error != null) {
+                            close(error)
+                            return@addSnapshotListener
+                        }
+
+                        val players = snapshot?.toObjects(Player::class.java) ?: emptyList()
+                        trySend(players).isSuccess
                     }
             } catch (e: Exception) {
                 e.printStackTrace()
-                Resources.Error(e)
             }
-
             awaitClose {
                 listenerRegistration?.remove()
             }
@@ -402,6 +401,7 @@ class MatchRepositoryImpl @Inject constructor(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun observeMessages(matchId: String): Flow<Resources<List<Chat>, Exception>> {
         return callbackFlow<Resources<List<Chat>, Exception>> {
             var listenerRegistration: ListenerRegistration? = null

@@ -19,7 +19,7 @@ interface MatchRepository {
     suspend fun updateMatchStatus(matchId: String, newStatus: MatchStatus)
     suspend fun updateNewWord(matchId: String, newWord: String)
     suspend fun updateRound(matchId: String, newRound: Int)
-    suspend fun observeCurrentDrawer(matchId: String): Flow<Resources<String, Exception>>
+    fun observeMatch(matchId: String): Flow<Match?>
 
     // Players
     suspend fun adjustRole(matchId: String, userId: String, newRole: PlayerRole)
@@ -30,7 +30,7 @@ interface MatchRepository {
 
     // Observers player
     suspend fun observeSpecificPlayer(matchId: String, userId: String): Flow<Resources<Player, Exception>>
-    suspend fun observePlayerNumber(matchId: String): Flow<Int>
+    fun observePlayers(matchId: String): Flow<List<Player>>
 
     // Drawing
     suspend fun addPath(matchId: String, path: PathDto)

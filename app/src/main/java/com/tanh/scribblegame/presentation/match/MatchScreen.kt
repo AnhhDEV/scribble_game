@@ -1,5 +1,6 @@
 package com.tanh.scribblegame.presentation.match
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.tanh.scribblegame.domain.model.Match
 import com.tanh.scribblegame.presentation.match.item.MessageItem
 import com.tanh.scribblegame.presentation.onetime_event.OneTimeEvent
 import com.tanh.scribblegame.util.PlayerRole
@@ -40,6 +42,8 @@ fun MatchScreen(
 
     val state = viewModel.state.collectAsState().value
     val messages = viewModel.messages.collectAsState().value
+    val players = viewModel.players.collectAsState().value
+    val match = viewModel.match.collectAsState(initial = Match()).value ?: Match()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -63,6 +67,18 @@ fun MatchScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.setMatchData()
+    }
+
+    LaunchedEffect(players.size) {
+        if(players.size == 2) {
+            //start game
+            Log.d("MAT2", "RUn")
+            viewModel.startGame()
+        }
+    }
+
     Scaffold(
         modifier = modifier,
         snackbarHost = {
@@ -74,11 +90,17 @@ fun MatchScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if(state.myRole == PlayerRole.DRAWING) {
+//            if(state.myRole == PlayerRole.DRAWING) {
+//
+//            } else if(state.myRole == PlayerRole.GUESSING) {
+//
+//            }
 
-            } else if(state.myRole == PlayerRole.GUESSING) {
+            //
+            Text(players.toString())
+            Text(match.toString())
 
-            }
+            //chat box
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
             ) {
