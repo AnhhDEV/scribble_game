@@ -11,7 +11,7 @@ import com.tanh.scribblegame.domain.repository.AnonymousAuthRepository
 import com.tanh.scribblegame.domain.repository.MatchRepository
 import com.tanh.scribblegame.domain.repository.UserRepository
 import com.tanh.scribblegame.presentation.onetime_event.OneTimeEvent
-import com.tanh.scribblegame.domain.use_case.JoinRoom
+import com.tanh.scribblegame.domain.use_case.uc.JoinRoom
 import com.tanh.scribblegame.util.MatchStatus
 import com.tanh.scribblegame.util.Route
 import dagger.hilt.android.lifecycle.HiltViewModel

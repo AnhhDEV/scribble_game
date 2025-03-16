@@ -1,6 +1,7 @@
 package com.tanh.scribblegame.presentation.match
 
 import android.util.Log
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,6 +31,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -37,6 +41,7 @@ import com.tanh.scribblegame.domain.model.Match
 import com.tanh.scribblegame.presentation.match.item.MessageItem
 import com.tanh.scribblegame.presentation.onetime_event.OneTimeEvent
 import com.tanh.scribblegame.util.PlayerRole
+import kotlinx.coroutines.delay
 
 @Composable
 fun MatchScreen(
@@ -54,6 +59,10 @@ fun MatchScreen(
 
     var inputMessage by remember {
         mutableStateOf("")
+    }
+
+    var newRound by remember {
+        mutableStateOf(false)
     }
 
     LaunchedEffect(true) {
@@ -90,12 +99,18 @@ fun MatchScreen(
     LaunchedEffect(state.currentWord) {
         if(state.currentWord.isNotBlank()) {
             viewModel.startGuess()
-            Log.d("MAT2", "Start guess")
+        }
+    }
+
+    LaunchedEffect(state.round) {
+        if(state.round > 1) {
+            delay(500L)
+            viewModel.newRoundStart()
         }
     }
 
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.padding(8.dp).padding(16.dp),
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         }
@@ -105,6 +120,14 @@ fun MatchScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
+            Text(
+                text = "Round: ${state.round}",
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             if(state.myRole == PlayerRole.DRAWING.toString()) {
                 Column() {
                     Text("DRAWING")
@@ -118,16 +141,14 @@ fun MatchScreen(
                 }
             }
 
-            //
-            Text(players.toString())
             Spacer(modifier = Modifier.height(16.dp))
-            Text(match.toString())
 
             Text(state.time.toString(), fontSize = 20.sp)
 
             //chat box
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
+                    .border(1.dp, Color.Black, RectangleShape)
             ) {
                 items(messages) { message ->
                     MessageItem(

@@ -1,4 +1,4 @@
-package com.tanh.scribblegame.domain.use_case
+package com.tanh.scribblegame.domain.use_case.uc
 
 import com.tanh.scribblegame.domain.repository.MatchRepository
 import javax.inject.Inject

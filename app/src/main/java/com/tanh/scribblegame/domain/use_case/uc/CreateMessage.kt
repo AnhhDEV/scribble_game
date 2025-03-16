@@ -1,4 +1,4 @@
-package com.tanh.scribblegame.domain.use_case
+package com.tanh.scribblegame.domain.use_case.uc
 
 import android.os.Build
 import androidx.annotation.RequiresApi

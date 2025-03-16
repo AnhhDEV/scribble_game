@@ -64,6 +64,7 @@ class MatchViewModel @Inject constructor(
 
     //initial data
     init {
+        resetState()
         matchId = savedStateHandle.get<String>("matchId") ?: ""
         if (matchId.isNotBlank()) {
             observeMatchAndMessages()
@@ -114,10 +115,20 @@ class MatchViewModel @Inject constructor(
 
     //a new game start
     fun startGame() {
-        //set role
-//        setRole()
-        setTimePerRound()
-        selectWord()
+        viewModelScope.launch {
+            setTimePerRound()
+            selectWord()
+        }
+    }
+
+    //new round start
+    fun newRoundStart() {
+        setRole()
+        viewModelScope.launch {
+            setTimePerRound()
+            delay(500L)
+            selectWord()
+        }
     }
 
     private fun setRole() {
@@ -217,11 +228,13 @@ class MatchViewModel @Inject constructor(
     }
 
     private fun endRound() {
-        _state.update {
-            it.copy(
-                time = 0
-            )
+        viewModelScope.launch {
+            matchManager.resetMatch(matchId, _state.value.round + 1, _state.value.matchStatus, _state.value.name)
         }
+    }
+
+    private fun resetState() {
+        _state.value = MatchUiState()
     }
 
     private fun sendEvent(event: OneTimeEvent) {
@@ -229,8 +242,4 @@ class MatchViewModel @Inject constructor(
             _channel.send(event)
         }
     }
-
-
-
-
 }

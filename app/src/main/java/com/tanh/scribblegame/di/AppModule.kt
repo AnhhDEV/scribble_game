@@ -1,18 +1,18 @@
 package com.tanh.scribblegame.di
 
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.tanh.scribblegame.domain.repository.MatchRepository
-import com.tanh.scribblegame.domain.use_case.CreateMessage
-import com.tanh.scribblegame.domain.use_case.IncreaseScore
-import com.tanh.scribblegame.domain.use_case.JoinRoom
-import com.tanh.scribblegame.domain.use_case.ObserveMatch
-import com.tanh.scribblegame.domain.use_case.ObserveMessages
-import com.tanh.scribblegame.domain.use_case.ObservePlayers
-import com.tanh.scribblegame.domain.use_case.SetRolePlayer
-import com.tanh.scribblegame.domain.use_case.UpdateNewWord
+import com.tanh.scribblegame.domain.use_case.uc.CreateMessage
+import com.tanh.scribblegame.domain.use_case.uc.IncreaseScore
+import com.tanh.scribblegame.domain.use_case.uc.JoinRoom
+import com.tanh.scribblegame.domain.use_case.uc.ObserveMatch
+import com.tanh.scribblegame.domain.use_case.uc.ObserveMessages
+import com.tanh.scribblegame.domain.use_case.uc.ObservePlayers
+import com.tanh.scribblegame.domain.use_case.uc.ResetMatch
+import com.tanh.scribblegame.domain.use_case.uc.SetRolePlayer
+import com.tanh.scribblegame.domain.use_case.uc.UpdateNewRound
+import com.tanh.scribblegame.domain.use_case.uc.UpdateNewWord
 import com.tanh.scribblegame.domain.use_case.use_case_manager.MatchManager
 import com.tanh.scribblegame.domain.use_case.use_case_manager.MessageManager
 import com.tanh.scribblegame.domain.use_case.use_case_manager.PlayerManager
@@ -82,10 +82,20 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideUpdateRound(repository: MatchRepository) = UpdateNewRound(repository)
+
+    @Provides
+    @Singleton
+    fun provideResetMatch(repository: MatchRepository) = ResetMatch(repository)
+
+    @Provides
+    @Singleton
     fun provideMatchManager(
         observeMatch: ObserveMatch,
         updateNewWord: UpdateNewWord,
-        increaseScore: IncreaseScore
-    ) = MatchManager(observeMatch, updateNewWord, increaseScore)
+        increaseScore: IncreaseScore,
+        updateNewRound: UpdateNewRound,
+        resetMatch: ResetMatch
+    ) = MatchManager(observeMatch, updateNewWord, increaseScore, updateNewRound, resetMatch)
 
 }

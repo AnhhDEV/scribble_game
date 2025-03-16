@@ -255,6 +255,23 @@ class MatchRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun updateMatch(matchId: String, match: Match) {
+        withContext(Dispatchers.IO) {
+            try {
+                val data = mapOf(
+                    "currentDrawer" to match.currentDrawer,
+                    "currentWord" to match.currentWord,
+                    "round" to match.round,
+                    "status" to match.status,
+                    "name" to match.name
+                )
+                matchesRef.document(matchId).update(data).await()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     //xoá player trong game dựa vào userId.
     override suspend fun removePlayer(matchId: String, userId: String) {
         withContext(Dispatchers.IO) {

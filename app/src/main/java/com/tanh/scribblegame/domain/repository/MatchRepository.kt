@@ -16,6 +16,7 @@ interface MatchRepository {
     // Match
     fun getAvailableMatches(): Flow<Resources<List<Match>, Exception>>
     suspend fun createMatch(match: Match, player1: UserData): Resources<String, Exception>
+    suspend fun updateMatch(matchId: String, match: Match)
     suspend fun updateMatchStatus(matchId: String, newStatus: MatchStatus)
     suspend fun updateNewWord(matchId: String, newWord: String)
     suspend fun updateRound(matchId: String, newRound: Int)
