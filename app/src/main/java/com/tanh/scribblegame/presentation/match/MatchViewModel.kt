@@ -14,10 +14,12 @@ import com.tanh.scribblegame.data.resources.onError
 import com.tanh.scribblegame.data.resources.onSuccess
 import com.tanh.scribblegame.domain.model.Chat
 import com.tanh.scribblegame.domain.model.Match
+import com.tanh.scribblegame.domain.model.Path
 import com.tanh.scribblegame.domain.model.Player
 import com.tanh.scribblegame.domain.repository.AnonymousAuthRepository
 import com.tanh.scribblegame.domain.use_case.use_case_manager.MatchManager
 import com.tanh.scribblegame.domain.use_case.use_case_manager.MessageManager
+import com.tanh.scribblegame.domain.use_case.use_case_manager.PathManager
 import com.tanh.scribblegame.domain.use_case.use_case_manager.PlayerManager
 import com.tanh.scribblegame.presentation.onetime_event.OneTimeEvent
 import com.tanh.scribblegame.util.PlayerRole
@@ -38,7 +40,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MatchViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     private val auth: AnonymousAuthRepository,
     private val messageManager: MessageManager,
     private val playersManager: PlayerManager,
@@ -48,7 +50,7 @@ class MatchViewModel @Inject constructor(
     private val _state = MutableStateFlow(MatchUiState())
     val state = _state.asStateFlow()
 
-    private var matchId by mutableStateOf("")
+    var matchId by mutableStateOf("")
 
     private val _channel = Channel<OneTimeEvent>()
     val channel = _channel.receiveAsFlow()

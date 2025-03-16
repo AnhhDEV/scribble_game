@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -36,16 +37,24 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastForEach
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tanh.scribblegame.domain.model.Match
 import com.tanh.scribblegame.presentation.match.item.MessageItem
 import com.tanh.scribblegame.presentation.onetime_event.OneTimeEvent
+import com.tanh.scribblegame.presentation.path.ColorItem
+import com.tanh.scribblegame.presentation.path.DrawingAction
+import com.tanh.scribblegame.presentation.path.DrawingCanvas
+import com.tanh.scribblegame.presentation.path.DrawingViewModel
+import com.tanh.scribblegame.ui.theme.colors
+import com.tanh.scribblegame.ui.theme.findColorByIndex
 import com.tanh.scribblegame.util.PlayerRole
 import kotlinx.coroutines.delay
 
 @Composable
 fun MatchScreen(
     viewModel: MatchViewModel = hiltViewModel<MatchViewModel>(),
+    drawingViewModel: DrawingViewModel = hiltViewModel<DrawingViewModel>(),
     modifier: Modifier = Modifier,
     onNavigate: (OneTimeEvent.Navigate) -> Unit
 ) {
@@ -53,16 +62,14 @@ fun MatchScreen(
     val state = viewModel.state.collectAsState().value
     val messages = viewModel.messages.collectAsState().value
     val players = viewModel.players.collectAsState().value
-    val match = viewModel.match.collectAsState(initial = Match()).value ?: Match()
+    val paths = drawingViewModel.path.collectAsState().value
+
+    val drawingState = drawingViewModel.state.collectAsState().value
 
     val snackbarHostState = remember { SnackbarHostState() }
 
     var inputMessage by remember {
         mutableStateOf("")
-    }
-
-    var newRound by remember {
-        mutableStateOf(false)
     }
 
     LaunchedEffect(true) {
@@ -88,6 +95,12 @@ fun MatchScreen(
         viewModel.setMatchData()
     }
 
+    LaunchedEffect(viewModel.match) {
+        viewModel.match.collect {
+            drawingViewModel.setMatchId(it?.documentId ?: "")
+        }
+    }
+
     LaunchedEffect(players.size) {
         if(players.size == 2 && state.round == 1) {
             //start game
@@ -104,7 +117,8 @@ fun MatchScreen(
 
     LaunchedEffect(state.round) {
         if(state.round > 1) {
-            delay(500L)
+            drawingViewModel.clearPaths()
+            delay(1000L)
             viewModel.newRoundStart()
         }
     }
@@ -129,15 +143,50 @@ fun MatchScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             if(state.myRole == PlayerRole.DRAWING.toString()) {
-                Column() {
+                Column(
+                    modifier =  Modifier.height(400.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Text("DRAWING")
-                }
-            } else if(state.myRole == PlayerRole.GUESSING.toString()) {
-                Column() {
-                    Text("GUESSING")
-                    if(state.wait) {
-                        Text("wait a bit")
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+                    ) {
+                        colors.forEachIndexed { idx, color ->
+                            ColorItem(
+                                color,
+                                onClick = {
+                                    drawingViewModel.onAction(DrawingAction.OnSelectColor(idx))
+                                }
+                            )
+                        }
                     }
+                    DrawingCanvas(
+                        paths = paths,
+                        currentPath = drawingState.currentPath,
+                        onAction = drawingViewModel::onAction,
+                        isDrawingEnabled = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    )
+                }
+            } else  {
+                Column(modifier =  Modifier.height(400.dp),
+                    verticalArrangement = Arrangement.Center) {
+                    Text("GUESSING")
+                    Spacer(modifier = Modifier.height(6.dp))
+                    DrawingCanvas(
+                        paths = paths,
+                        currentPath = drawingState.currentPath,
+                        onAction = drawingViewModel::onAction,
+                        isDrawingEnabled = false,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    )
                 }
             }
 

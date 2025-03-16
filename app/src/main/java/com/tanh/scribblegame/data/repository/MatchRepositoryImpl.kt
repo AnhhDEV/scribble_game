@@ -101,6 +101,25 @@ class MatchRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun clearPaths(matchId: String) {
+        withContext(Dispatchers.IO) {
+            val collectionRef = matchesRef.document(matchId).collection(Collections.PATHS)
+            try {
+                while (true) {
+                    val batch = firebaseFirestore.batch()
+                    val documents = collectionRef.limit(500).get().await()
+                    if(documents.isEmpty) break
+                    for(document in documents) {
+                        batch.delete(document.reference)
+                    }
+                    batch.commit().await()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     override suspend fun updateMatchStatus(matchId: String, newStatus: MatchStatus) {
         withContext(Dispatchers.IO) {
             try {
@@ -373,7 +392,7 @@ class MatchRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun observePaths(matchId: String): Flow<Resources<List<PathDto>, Exception>> {
+    override fun observePaths(matchId: String): Flow<Resources<List<PathDto>, Exception>> {
         return callbackFlow<Resources<List<PathDto>, Exception>> {
             var listenerRegistration: ListenerRegistration? = null
             try {

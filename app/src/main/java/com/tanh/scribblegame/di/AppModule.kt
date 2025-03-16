@@ -3,18 +3,22 @@ package com.tanh.scribblegame.di
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.tanh.scribblegame.domain.repository.MatchRepository
+import com.tanh.scribblegame.domain.use_case.uc.ClearPaths
 import com.tanh.scribblegame.domain.use_case.uc.CreateMessage
 import com.tanh.scribblegame.domain.use_case.uc.IncreaseScore
 import com.tanh.scribblegame.domain.use_case.uc.JoinRoom
 import com.tanh.scribblegame.domain.use_case.uc.ObserveMatch
 import com.tanh.scribblegame.domain.use_case.uc.ObserveMessages
+import com.tanh.scribblegame.domain.use_case.uc.ObservePaths
 import com.tanh.scribblegame.domain.use_case.uc.ObservePlayers
 import com.tanh.scribblegame.domain.use_case.uc.ResetMatch
 import com.tanh.scribblegame.domain.use_case.uc.SetRolePlayer
+import com.tanh.scribblegame.domain.use_case.uc.UpdateNewPath
 import com.tanh.scribblegame.domain.use_case.uc.UpdateNewRound
 import com.tanh.scribblegame.domain.use_case.uc.UpdateNewWord
 import com.tanh.scribblegame.domain.use_case.use_case_manager.MatchManager
 import com.tanh.scribblegame.domain.use_case.use_case_manager.MessageManager
+import com.tanh.scribblegame.domain.use_case.use_case_manager.PathManager
 import com.tanh.scribblegame.domain.use_case.use_case_manager.PlayerManager
 import dagger.Module
 import dagger.Provides
@@ -97,5 +101,25 @@ object AppModule {
         updateNewRound: UpdateNewRound,
         resetMatch: ResetMatch
     ) = MatchManager(observeMatch, updateNewWord, increaseScore, updateNewRound, resetMatch)
+
+    @Provides
+    @Singleton
+    fun provideObservePathsUsecase(repository: MatchRepository) = ObservePaths(repository)
+
+    @Provides
+    @Singleton
+    fun provideUpdateNewPathUsecase(repository: MatchRepository) = UpdateNewPath(repository)
+
+    @Provides
+    @Singleton
+    fun provideClearPathUsecase(repository: MatchRepository) = ClearPaths(repository)
+
+    @Provides
+    @Singleton
+    fun providePathManager(
+        observePaths: ObservePaths,
+        updateNewPath: UpdateNewPath,
+        clearPaths: ClearPaths
+    ) = PathManager(observePaths, updateNewPath, clearPaths)
 
 }

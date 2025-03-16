@@ -35,7 +35,8 @@ interface MatchRepository {
 
     // Drawing
     suspend fun addPath(matchId: String, path: PathDto)
-    suspend fun observePaths(matchId: String): Flow<Resources<List<PathDto>, Exception>>
+    fun observePaths(matchId: String): Flow<Resources<List<PathDto>, Exception>>
+    suspend fun clearPaths(matchId: String)
 
     // Chats
     suspend fun sendMessage(matchId: String, message: ChatDto)

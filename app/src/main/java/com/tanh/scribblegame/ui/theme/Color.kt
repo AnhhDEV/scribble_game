@@ -25,3 +25,5 @@ val colors = listOf(
     LightBlue,
     LightYellow
 )
+
+fun findColorByIndex(index: Int) = colors[index]
