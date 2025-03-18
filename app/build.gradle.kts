@@ -96,6 +96,10 @@ dependencies {
     androidTestImplementation ("com.google.dagger:hilt-android-testing:2.44")
 
     implementation("com.google.accompanist:accompanist-swiperefresh:0.32.0")
+
+    implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation("io.coil-kt:coil-gif:2.6.0")
+
 }
 
 kapt {
