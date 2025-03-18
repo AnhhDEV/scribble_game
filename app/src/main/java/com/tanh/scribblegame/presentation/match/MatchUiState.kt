@@ -19,6 +19,7 @@ data class MatchUiState(
     val myStatus: String = PlayerStatus.ONLINE.toString(),
 
     //wait
-    val wait: Boolean = false
+    val wait: Boolean = false,
+    val hasGameStarted: Boolean = false
 
 )

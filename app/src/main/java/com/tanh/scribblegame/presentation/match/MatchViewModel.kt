@@ -14,12 +14,15 @@ import com.tanh.scribblegame.data.resources.onError
 import com.tanh.scribblegame.data.resources.onSuccess
 import com.tanh.scribblegame.domain.model.Chat
 import com.tanh.scribblegame.domain.model.Match
+import com.tanh.scribblegame.domain.model.Path
 import com.tanh.scribblegame.domain.model.Player
 import com.tanh.scribblegame.domain.repository.AnonymousAuthRepository
 import com.tanh.scribblegame.domain.use_case.use_case_manager.MatchManager
 import com.tanh.scribblegame.domain.use_case.use_case_manager.MessageManager
+import com.tanh.scribblegame.domain.use_case.use_case_manager.PathManager
 import com.tanh.scribblegame.domain.use_case.use_case_manager.PlayerManager
 import com.tanh.scribblegame.presentation.onetime_event.OneTimeEvent
+import com.tanh.scribblegame.util.MatchStatus
 import com.tanh.scribblegame.util.PlayerRole
 import com.tanh.scribblegame.util.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -38,7 +41,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MatchViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     private val auth: AnonymousAuthRepository,
     private val messageManager: MessageManager,
     private val playersManager: PlayerManager,
@@ -48,7 +51,7 @@ class MatchViewModel @Inject constructor(
     private val _state = MutableStateFlow(MatchUiState())
     val state = _state.asStateFlow()
 
-    private var matchId by mutableStateOf("")
+    var matchId by mutableStateOf("")
 
     private val _channel = Channel<OneTimeEvent>()
     val channel = _channel.receiveAsFlow()
@@ -78,7 +81,6 @@ class MatchViewModel @Inject constructor(
         when (event) {
             is MatchEvent.OnTypeMessage -> typeMessage(message = event.message)
         }
-
     }
 
 
@@ -87,7 +89,13 @@ class MatchViewModel @Inject constructor(
             launch {
                 messageManager.observeMessages(matchId).collect { result ->
                     result.onSuccess { _messages.value = it }
-                    result.onError { sendEvent(OneTimeEvent.ShowSnackbar(it.message ?: "Unknown error")) }
+                    result.onError {
+                        sendEvent(
+                            OneTimeEvent.ShowSnackbar(
+                                it.message ?: "Unknown error"
+                            )
+                        )
+                    }
                 }
             }
             launch {
@@ -115,9 +123,15 @@ class MatchViewModel @Inject constructor(
 
     //a new game start
     fun startGame() {
+        _state.update {
+            it.copy(
+                hasGameStarted = true
+            )
+        }
         viewModelScope.launch {
             setTimePerRound()
             selectWord()
+            changeWaitingStatus()
         }
     }
 
@@ -128,13 +142,26 @@ class MatchViewModel @Inject constructor(
             setTimePerRound()
             delay(500L)
             selectWord()
+            changeWaitingStatus()
+        }
+    }
+
+    private fun changeWaitingStatus() {
+        if (_state.value.currentWord.isEmpty()) {
+            _state.update {
+                it.copy(wait = true)
+            }
+        } else {
+            _state.update {
+                it.copy(wait = false)
+            }
         }
     }
 
     private fun setRole() {
         viewModelScope.launch {
             Log.d("MAT2", _state.value.toString())
-            if(_state.value.userId.isNotBlank() && _state.value.myRole.isNotBlank()) {
+            if (_state.value.userId.isNotBlank() && _state.value.myRole.isNotBlank()) {
                 playersManager.setRolePlayer(matchId, _state.value.userId, _state.value.myRole)
             }
         }
@@ -151,7 +178,7 @@ class MatchViewModel @Inject constructor(
 
     private fun decreaseTime() {
         viewModelScope.launch {
-            while(state.value.time > 0) {
+            while (state.value.time > 0) {
                 _state.update {
                     it.copy(
                         time = it.time - 1
@@ -163,11 +190,9 @@ class MatchViewModel @Inject constructor(
     }
 
     private fun selectWord() {
-        Log.d("MAT2", "Select word ${_state.value.myRole}")
-        if(_state.value.myRole == PlayerRole.DRAWING.toString() && _state.value.currentWord.isBlank()) {
-            Log.d("MAT2", "Nav Select word")
+        if (_state.value.myRole == PlayerRole.DRAWING.toString() && _state.value.currentWord.isBlank()) {
             sendEvent(OneTimeEvent.Navigate(Route.SELECTOR + "/${matchId}"))
-        } else if(_state.value.myRole == PlayerRole.GUESSING.toString()) {
+        } else if (_state.value.myRole == PlayerRole.GUESSING.toString()) {
             _state.update {
                 it.copy(wait = true)
             }
@@ -217,19 +242,24 @@ class MatchViewModel @Inject constructor(
     }
 
     private fun guessCorrect(message: String) {
-        if(message.trim().equals(_state.value.currentWord.trim(), ignoreCase = true)) {
-            if(_state.value.myRole == PlayerRole.GUESSING.toString()) {
+        if (message.trim().equals(_state.value.currentWord.trim(), ignoreCase = true)) {
+            if (_state.value.myRole == PlayerRole.GUESSING.toString()) {
                 viewModelScope.launch {
                     matchManager.updateScore(matchId, _state.value.time, _state.value.userId)
+                    endRound()
                 }
-                endRound()
             }
         }
     }
 
-    private fun endRound() {
+    fun endRound() {
         viewModelScope.launch {
-            matchManager.resetMatch(matchId, _state.value.round + 1, _state.value.matchStatus, _state.value.name)
+            matchManager.resetMatch(
+                matchId,
+                _state.value.round + 1,
+                _state.value.matchStatus,
+                _state.value.name
+            )
         }
     }
 
@@ -237,9 +267,40 @@ class MatchViewModel @Inject constructor(
         _state.value = MatchUiState()
     }
 
+    fun backToLists() {
+        viewModelScope.launch {
+            resetState()
+            removePlayer()
+            sendEvent(OneTimeEvent.PopBackStack)
+        }
+    }
+
+    private suspend fun removePlayer() {
+        auth.getCurrentUserId()?.let {
+            playersManager.deletePlayer(
+                matchId = matchId,
+                userId = it
+            )
+        }
+    }
+
     private fun sendEvent(event: OneTimeEvent) {
         viewModelScope.launch {
             _channel.send(event)
+        }
+    }
+
+    suspend fun changeMatchStatus(status: MatchStatus) {
+        matchManager.updateMatchStatus(
+            matchId,
+            status
+        )
+    }
+
+    fun removeMatch() {
+        Log.d("MAT3", "remove match")
+        viewModelScope.launch {
+            matchManager.deleteMatch(matchId)
         }
     }
 }

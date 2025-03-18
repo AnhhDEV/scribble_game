@@ -101,6 +101,25 @@ class MatchRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun clearPaths(matchId: String) {
+        withContext(Dispatchers.IO) {
+            val collectionRef = matchesRef.document(matchId).collection(Collections.PATHS)
+            try {
+                while (true) {
+                    val batch = firebaseFirestore.batch()
+                    val documents = collectionRef.limit(500).get().await()
+                    if(documents.isEmpty) break
+                    for(document in documents) {
+                        batch.delete(document.reference)
+                    }
+                    batch.commit().await()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     override suspend fun updateMatchStatus(matchId: String, newStatus: MatchStatus) {
         withContext(Dispatchers.IO) {
             try {
@@ -169,6 +188,42 @@ class MatchRepositoryImpl @Inject constructor(
                         .update("role", newRole.toString())
                         .await()
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    override suspend fun removePlayerById(matchId: String, userId: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                //query player
+                val documentId = matchesRef
+                    .document(matchId)
+                    .collection(Collections.PLAYERS)
+                    .whereEqualTo("userId", userId)
+                    .get()
+                    .await()
+                    .first()
+                    .id
+
+                //delete player
+                matchesRef.document(matchId)
+                    .collection(Collections.PLAYERS)
+                    .document(documentId)
+                    .delete()
+                    .await()
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    override suspend fun deleteMatch(matchId: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                matchesRef.document(matchId).delete().await()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -276,6 +331,7 @@ class MatchRepositoryImpl @Inject constructor(
     override suspend fun removePlayer(matchId: String, userId: String) {
         withContext(Dispatchers.IO) {
             try {
+                Log.d("MAT3", "delete: $userId")
                 val snapshot = matchesRef.document(matchId).collection(Collections.PLAYERS)
                     .whereEqualTo("userId", userId)
                     .get()
@@ -373,7 +429,7 @@ class MatchRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun observePaths(matchId: String): Flow<Resources<List<PathDto>, Exception>> {
+    override fun observePaths(matchId: String): Flow<Resources<List<PathDto>, Exception>> {
         return callbackFlow<Resources<List<PathDto>, Exception>> {
             var listenerRegistration: ListenerRegistration? = null
             try {

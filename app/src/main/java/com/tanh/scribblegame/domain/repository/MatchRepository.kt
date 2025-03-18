@@ -21,6 +21,7 @@ interface MatchRepository {
     suspend fun updateNewWord(matchId: String, newWord: String)
     suspend fun updateRound(matchId: String, newRound: Int)
     fun observeMatch(matchId: String): Flow<Match?>
+    suspend fun deleteMatch(matchId: String)
 
     // Players
     suspend fun adjustRole(matchId: String, userId: String, newRole: PlayerRole)
@@ -28,6 +29,7 @@ interface MatchRepository {
     suspend fun updatePlayerStatus(matchId: String, userId: String, newStatus: PlayerStatus)
     suspend fun newUserJoin(matchId: String, user: UserData): Resources<Boolean, Exception>
     suspend fun removePlayer(matchId: String, userId: String)
+    suspend fun removePlayerById(matchId: String, userId: String)
 
     // Observers player
     suspend fun observeSpecificPlayer(matchId: String, userId: String): Flow<Resources<Player, Exception>>
@@ -35,7 +37,8 @@ interface MatchRepository {
 
     // Drawing
     suspend fun addPath(matchId: String, path: PathDto)
-    suspend fun observePaths(matchId: String): Flow<Resources<List<PathDto>, Exception>>
+    fun observePaths(matchId: String): Flow<Resources<List<PathDto>, Exception>>
+    suspend fun clearPaths(matchId: String)
 
     // Chats
     suspend fun sendMessage(matchId: String, message: ChatDto)
