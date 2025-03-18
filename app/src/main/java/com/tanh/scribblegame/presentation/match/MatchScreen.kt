@@ -60,6 +60,7 @@ import com.tanh.scribblegame.presentation.path.DrawingAction
 import com.tanh.scribblegame.presentation.path.DrawingCanvas
 import com.tanh.scribblegame.presentation.path.DrawingViewModel
 import com.tanh.scribblegame.ui.theme.colors
+import com.tanh.scribblegame.util.MatchStatus
 import com.tanh.scribblegame.util.PlayerRole
 import kotlinx.coroutines.delay
 
@@ -84,6 +85,10 @@ fun MatchScreen(
 
     var inputMessage by remember {
         mutableStateOf("")
+    }
+
+    var isFirstTimeInitMatch by remember {
+        mutableStateOf(true)
     }
 
     LaunchedEffect(true) {
@@ -123,6 +128,19 @@ fun MatchScreen(
             Log.d("MAT3", "RUn")
             viewModel.startGame()
         }
+
+        when (players.size) {
+            0 -> {
+                if (isFirstTimeInitMatch) {
+                    isFirstTimeInitMatch = false
+                } else {
+                    viewModel.removeMatch()
+                }
+            }
+
+            1 -> viewModel.changeMatchStatus(MatchStatus.WAITING)
+            2 -> viewModel.changeMatchStatus(MatchStatus.ONGOING)
+        }
     }
 
     LaunchedEffect(state.currentWord) {
@@ -150,9 +168,10 @@ fun MatchScreen(
 
     ModalNavigationDrawer(
         drawerContent = {
-            ModalDrawerSheet{
+            ModalDrawerSheet {
                 Column(
-                    modifier = Modifier.padding(horizontal = 24.dp)
+                    modifier = Modifier
+                        .padding(horizontal = 24.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
                     Spacer(Modifier.height(24.dp))
@@ -180,7 +199,7 @@ fun MatchScreen(
     ) {
         Scaffold(
             modifier = modifier
-                .padding(8.dp)
+                .padding(0.dp)
                 .padding(16.dp),
             snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState)
@@ -226,6 +245,10 @@ fun MatchScreen(
                     ) {
                         Text("Your role: Drawing")
                         Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            "Word: ${state.currentWord}",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -283,7 +306,7 @@ fun MatchScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                if(state.time != 0) {
+                if (state.time != 0) {
                     Text(state.time.toString(), fontSize = 20.sp)
                 }
 

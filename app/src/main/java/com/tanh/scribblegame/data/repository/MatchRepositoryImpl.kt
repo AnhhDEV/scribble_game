@@ -220,6 +220,16 @@ class MatchRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun deleteMatch(matchId: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                matchesRef.document(matchId).delete().await()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     override suspend fun updateScore(matchId: String, userId: String, newScore: Int) {
         withContext(Dispatchers.IO) {
             try {
@@ -321,6 +331,7 @@ class MatchRepositoryImpl @Inject constructor(
     override suspend fun removePlayer(matchId: String, userId: String) {
         withContext(Dispatchers.IO) {
             try {
+                Log.d("MAT3", "delete: $userId")
                 val snapshot = matchesRef.document(matchId).collection(Collections.PLAYERS)
                     .whereEqualTo("userId", userId)
                     .get()

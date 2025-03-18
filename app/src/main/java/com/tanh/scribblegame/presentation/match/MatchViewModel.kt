@@ -22,6 +22,7 @@ import com.tanh.scribblegame.domain.use_case.use_case_manager.MessageManager
 import com.tanh.scribblegame.domain.use_case.use_case_manager.PathManager
 import com.tanh.scribblegame.domain.use_case.use_case_manager.PlayerManager
 import com.tanh.scribblegame.presentation.onetime_event.OneTimeEvent
+import com.tanh.scribblegame.util.MatchStatus
 import com.tanh.scribblegame.util.PlayerRole
 import com.tanh.scribblegame.util.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -275,15 +276,31 @@ class MatchViewModel @Inject constructor(
     }
 
     private suspend fun removePlayer() {
-        playersManager.deletePlayer(
-            matchId = matchId,
-            userId = _state.value.userId
-        )
+        auth.getCurrentUserId()?.let {
+            playersManager.deletePlayer(
+                matchId = matchId,
+                userId = it
+            )
+        }
     }
 
     private fun sendEvent(event: OneTimeEvent) {
         viewModelScope.launch {
             _channel.send(event)
+        }
+    }
+
+    suspend fun changeMatchStatus(status: MatchStatus) {
+        matchManager.updateMatchStatus(
+            matchId,
+            status
+        )
+    }
+
+    fun removeMatch() {
+        Log.d("MAT3", "remove match")
+        viewModelScope.launch {
+            matchManager.deleteMatch(matchId)
         }
     }
 }

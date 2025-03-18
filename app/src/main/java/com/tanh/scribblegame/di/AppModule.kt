@@ -5,6 +5,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.tanh.scribblegame.domain.repository.MatchRepository
 import com.tanh.scribblegame.domain.use_case.uc.ClearPaths
 import com.tanh.scribblegame.domain.use_case.uc.CreateMessage
+import com.tanh.scribblegame.domain.use_case.uc.DeleteMatch
 import com.tanh.scribblegame.domain.use_case.uc.DeletePlayer
 import com.tanh.scribblegame.domain.use_case.uc.IncreaseScore
 import com.tanh.scribblegame.domain.use_case.uc.JoinRoom
@@ -14,6 +15,7 @@ import com.tanh.scribblegame.domain.use_case.uc.ObservePaths
 import com.tanh.scribblegame.domain.use_case.uc.ObservePlayers
 import com.tanh.scribblegame.domain.use_case.uc.ResetMatch
 import com.tanh.scribblegame.domain.use_case.uc.SetRolePlayer
+import com.tanh.scribblegame.domain.use_case.uc.UpdateMatchStatus
 import com.tanh.scribblegame.domain.use_case.uc.UpdateNewPath
 import com.tanh.scribblegame.domain.use_case.uc.UpdateNewRound
 import com.tanh.scribblegame.domain.use_case.uc.UpdateNewWord
@@ -95,14 +97,22 @@ object AppModule {
     fun provideResetMatch(repository: MatchRepository) = ResetMatch(repository)
 
     @Provides
+    fun provideDeleteMatch(repository: MatchRepository) = DeleteMatch(repository)
+
+    @Provides
+    fun provideUpdateMatchStatus(repository: MatchRepository) = UpdateMatchStatus(repository)
+
+    @Provides
     @Singleton
     fun provideMatchManager(
         observeMatch: ObserveMatch,
         updateNewWord: UpdateNewWord,
         increaseScore: IncreaseScore,
         updateNewRound: UpdateNewRound,
-        resetMatch: ResetMatch
-    ) = MatchManager(observeMatch, updateNewWord, increaseScore, updateNewRound, resetMatch)
+        resetMatch: ResetMatch,
+        deleteMatch: DeleteMatch,
+        updateMatchStatus: UpdateMatchStatus
+    ) = MatchManager(observeMatch, updateNewWord, increaseScore, updateNewRound, resetMatch, deleteMatch, updateMatchStatus)
 
     @Provides
     @Singleton

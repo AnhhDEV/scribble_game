@@ -80,7 +80,7 @@ fun MatchListScreen(
         modifier = Modifier.padding(8.dp)
     ) {
         Column(
-            modifier = modifier.fillMaxSize(),
+            modifier = modifier.fillMaxSize().padding(4.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {

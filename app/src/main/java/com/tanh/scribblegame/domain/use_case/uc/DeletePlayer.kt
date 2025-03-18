@@ -8,7 +8,7 @@ class DeletePlayer @Inject constructor(
 ) {
 
     suspend operator fun invoke(matchId: String, userId:  String) {
-        matchRepository.removePlayerById(
+        matchRepository.removePlayer(
             matchId = matchId,
             userId = userId
         )

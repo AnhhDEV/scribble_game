@@ -21,6 +21,7 @@ interface MatchRepository {
     suspend fun updateNewWord(matchId: String, newWord: String)
     suspend fun updateRound(matchId: String, newRound: Int)
     fun observeMatch(matchId: String): Flow<Match?>
+    suspend fun deleteMatch(matchId: String)
 
     // Players
     suspend fun adjustRole(matchId: String, userId: String, newRole: PlayerRole)
