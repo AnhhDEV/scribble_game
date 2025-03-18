@@ -194,6 +194,32 @@ class MatchRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun removePlayerById(matchId: String, userId: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                //query player
+                val documentId = matchesRef
+                    .document(matchId)
+                    .collection(Collections.PLAYERS)
+                    .whereEqualTo("userId", userId)
+                    .get()
+                    .await()
+                    .first()
+                    .id
+
+                //delete player
+                matchesRef.document(matchId)
+                    .collection(Collections.PLAYERS)
+                    .document(documentId)
+                    .delete()
+                    .await()
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     override suspend fun updateScore(matchId: String, userId: String, newScore: Int) {
         withContext(Dispatchers.IO) {
             try {

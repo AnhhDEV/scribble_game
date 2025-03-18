@@ -5,6 +5,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.tanh.scribblegame.domain.repository.MatchRepository
 import com.tanh.scribblegame.domain.use_case.uc.ClearPaths
 import com.tanh.scribblegame.domain.use_case.uc.CreateMessage
+import com.tanh.scribblegame.domain.use_case.uc.DeletePlayer
 import com.tanh.scribblegame.domain.use_case.uc.IncreaseScore
 import com.tanh.scribblegame.domain.use_case.uc.JoinRoom
 import com.tanh.scribblegame.domain.use_case.uc.ObserveMatch
@@ -69,8 +70,9 @@ object AppModule {
     @Singleton
     fun providePlayersManager(
         observePlayers: ObservePlayers,
-        setRolePlayer: SetRolePlayer
-    ) = PlayerManager(observePlayers, setRolePlayer)
+        setRolePlayer: SetRolePlayer,
+        deletePlayer: DeletePlayer
+    ) = PlayerManager(observePlayers, setRolePlayer, deletePlayer)
 
     @Provides
     @Singleton
@@ -113,6 +115,10 @@ object AppModule {
     @Provides
     @Singleton
     fun provideClearPathUsecase(repository: MatchRepository) = ClearPaths(repository)
+
+    @Provides
+    @Singleton
+    fun provideDeletePlayerUseCase(repository: MatchRepository) =  DeletePlayer(repository)
 
     @Provides
     @Singleton

@@ -76,7 +76,9 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     ) {
-                        MatchScreen() {
+                        MatchScreen(
+                            onPopBackStack = {navController.popBackStack()}
+                        ) {
                             navController.navigate(it.route)
                         }
                     }

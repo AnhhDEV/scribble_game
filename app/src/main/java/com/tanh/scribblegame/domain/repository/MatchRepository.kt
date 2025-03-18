@@ -28,6 +28,7 @@ interface MatchRepository {
     suspend fun updatePlayerStatus(matchId: String, userId: String, newStatus: PlayerStatus)
     suspend fun newUserJoin(matchId: String, user: UserData): Resources<Boolean, Exception>
     suspend fun removePlayer(matchId: String, userId: String)
+    suspend fun removePlayerById(matchId: String, userId: String)
 
     // Observers player
     suspend fun observeSpecificPlayer(matchId: String, userId: String): Flow<Resources<Player, Exception>>
